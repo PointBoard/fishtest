@@ -454,12 +454,12 @@ def compare_branches_url(
     if user2 is None:
         user2 = user1
     return (
-        "https://github.com/official-stockfish/Stockfish/"
+        "https://github.com/PointBoard/PointChess/"
         f"compare/{user1}:{branch1}...{user2}:{branch2}"
     )
 
 
-def commit_url(user="official-stockfish", repo="Stockfish", branch="master"):
+def commit_url(user="PointBoard", repo="PointChess", branch="master"):
     return f"https://github.com/{user}/{repo}/commit/{branch}"
 
 

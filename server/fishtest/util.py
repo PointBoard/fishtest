@@ -582,7 +582,7 @@ def tests_repo(run):
     else:
         # very old tests didn't have a separate
         # tests repo
-        return "https://github.com/official-stockfish/Stockfish"
+        return "https://github.com/PointBoard/PointChess"
 
 
 def diff_url(run, master_check=True):
@@ -590,7 +590,7 @@ def diff_url(run, master_check=True):
     user2, repo = gh.parse_repo(tests_repo_)
     sha2 = run["args"]["resolved_new"]
     if "spsa" in run["args"]:
-        user1 = "official-stockfish"
+        user1 = "PointBoard"
         sha1 = gh.official_master_sha
     else:
         user1 = user2

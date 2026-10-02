@@ -1,19 +1,14 @@
 {% extends "base.html.j2" %}
 
-{% block title %}Register | Stockfish Testing{% endblock %}
-
-{% block head %}
-  <script src='https://www.google.com/recaptcha/api.js'></script>
-{% endblock %}
+{% block title %}Register | PointTest{% endblock %}
 
 {% block body %}
 <div class="col-limited-size">
   <header class="text-md-center py-2">
     <h2>Register</h2>
     <div class="alert alert-info">
-      <h4 class="alert-heading">Manual Approvals</h4>
-      <p class="mb-0">To avoid spam, a person will manually approve your account.</p>
-      <p class="mb-0">This is usually quick but <strong>sometimes takes a few hours</strong>.</p>
+      <h4 class="alert-heading">Instant Approval</h4>
+      <p class="mb-0">New accounts are approved automatically.</p>
       <hr />
       <p class="mb-0">Already have an account? <strong><a href="/login" class="alert-link">Log in</a></strong></p>
     </div>
@@ -91,7 +86,7 @@
           class="form-control"
           id="tests_repo"
           name="tests_repo"
-          placeholder="GitHub Stockfish fork URL"
+          placeholder="GitHub PointChess fork URL"
         >
         <label for="tests_repo" class="d-flex align-items-end">Tests Repository</label>
       </div>
@@ -111,7 +106,41 @@
       </div>
     </div>
 
-    <div class="g-recaptcha mb-3" data-sitekey="{{ recaptcha_site_key if recaptcha_site_key is defined else '' }}"></div>
+    <div class="mb-3">
+      <label for="pointtest-slider" class="form-label">Human check: drag the slider into the <strong>green zone</strong></label>
+      <input type="hidden" name="slider_token" value="{{ slider_token }}">
+      <input type="hidden" name="slider_value" id="slider_value" value="">
+      <input type="hidden" name="slider_time" id="slider_time" value="">
+      <div class="position-relative px-1 py-2 border rounded bg-body-tertiary">
+        <div id="slider_zone" class="position-absolute top-0 bottom-0 bg-success opacity-25 rounded" style="pointer-events:none;"></div>
+        <input type="range" class="form-range" min="0" max="100" step="0.5" value="0" id="pointtest-slider">
+      </div>
+      <div class="form-text" id="slider_status">Slide to the green zone to prove you are human.</div>
+    </div>
+    <script>
+      (function () {
+        var target = {{ slider_target }};
+        var slider = document.getElementById("pointtest-slider");
+        var zone = document.getElementById("slider_zone");
+        var status = document.getElementById("slider_status");
+        var valField = document.getElementById("slider_value");
+        var timeField = document.getElementById("slider_time");
+        var start = null;
+        zone.style.left = (target - 4) + "%";
+        zone.style.width = "8%";
+        slider.addEventListener("pointerdown", function () { start = Date.now(); }, { once: true });
+        slider.addEventListener("input", function () {
+          var v = parseFloat(slider.value);
+          valField.value = v;
+          timeField.value = start ? Date.now() - start : 0;
+          if (Math.abs(v - target) <= 2) {
+            status.textContent = "Good, you look human. You can register now.";
+          } else {
+            status.textContent = "Keep sliding into the green zone.";
+          }
+        });
+      })();
+    </script>
 
     <button type="submit" class="btn btn-primary w-100">Register</button>
   </form>

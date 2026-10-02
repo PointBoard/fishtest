@@ -11,9 +11,11 @@ import contextlib
 import copy
 import gzip
 import hashlib
+import hmac
 import logging
 import os
 import re
+import time
 from collections.abc import Callable, Mapping
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -708,14 +710,60 @@ def logout(request: _ViewContext) -> RedirectResponse:
     return RedirectResponse(url="/tests", status_code=302)
 
 
+def _slider_secret() -> str:
+    secret = os.environ.get("FISHTEST_AUTHENTICATION_SECRET", "").strip()
+    if not secret and os.environ.get("FISHTEST_INSECURE_DEV") == "1":
+        secret = "pointtest-insecure-dev-slider-secret"
+    return secret
+
+
+def _issue_slider_token() -> tuple[str, int]:
+    import secrets
+    import time
+
+    target = secrets.randbelow(81) + 10  # target zone center, 10..90
+    msg = f"{int(time.time())}.{secrets.token_hex(8)}.{target}"
+    sig = hmac.new(
+        _slider_secret().encode(), msg.encode(), hashlib.sha256
+    ).hexdigest()
+    return f"{msg}.{sig}", target
+
+
+def _verify_slider_token(token: str, value: str, duration: str) -> tuple[bool, str]:
+    import time
+
+    try:
+        ts_s, _nonce, target_s, sig = token.split(".")
+        ts, target = int(ts_s), int(target_s)
+        got = float(value)
+        took_ms = float(duration)
+    except (ValueError, AttributeError):
+        return False, "Captcha required"
+    if not _slider_secret():
+        return False, "Captcha configuration is missing"
+    msg = f"{ts_s}.{_nonce}.{target_s}"
+    want = hmac.new(
+        _slider_secret().encode(), msg.encode(), hashlib.sha256
+    ).hexdigest()
+    if not hmac.compare_digest(want, sig):
+        return False, "Captcha failed"
+    if abs(time.time() - ts) > 1800:
+        return False, "Captcha expired, please try again"
+    if abs(got - target) > 2:
+        return False, "Captcha failed"
+    if took_ms < 800:
+        return False, "Captcha failed"
+    return True, ""
+
+
 def signup(request: _ViewContext) -> dict[str, Any] | RedirectResponse:  # noqa: C901, PLR0911, PLR0912, PLR0915
     _append_no_store_headers(request)
-    recaptcha_site_key = os.environ.get(
-        "FISHTEST_CAPTCHA_SITE_KEY",
-        DEFAULT_RECAPTCHA_SITE_KEY,
-    ).strip()
+    slider_token, slider_target = _issue_slider_token()
+    auto_approve = os.environ.get("POINTTEST_AUTO_APPROVE", "1").strip() != "0"
     signup_context = {
-        "recaptcha_site_key": recaptcha_site_key,
+        "slider_token": slider_token,
+        "slider_target": slider_target,
+        "auto_approve": auto_approve,
         "VALID_USERNAME_PATTERN": VALID_USERNAME_PATTERN,
     }
 
@@ -758,39 +806,14 @@ def signup(request: _ViewContext) -> dict[str, Any] | RedirectResponse:  # noqa:
             request.session.flash(error, "error")
         return signup_context
 
-    secret = os.environ.get("FISHTEST_CAPTCHA_SECRET", "").strip()
-    captcha_response = _form_string_value(
-        request.POST,
-        "g-recaptcha-response",
-    ).strip()
-
-    if not secret:
-        request.session.flash("Captcha configuration is missing", "error")
-        return signup_context
-
-    if not captcha_response:
-        request.session.flash("Captcha required", "error")
-        return signup_context
-
-    payload = {
-        "secret": secret,
-        "response": captcha_response,
-        "remoteip": request.remote_addr,
-    }
-    try:
-        response = requests.post(
-            "https://www.google.com/recaptcha/api/siteverify",
-            data=payload,
-            timeout=HTTP_TIMEOUT,
-        ).json()
-    except requests.RequestException, ValueError:
-        request.session.flash("Captcha verification failed", "error")
-        return signup_context
-
-    if "success" not in response or not response["success"]:
-        if "error-codes" in response:
-            logger.warning(response["error-codes"])
-        request.session.flash("Captcha failed", "error")
+    # PointTest slider captcha: drag to the highlighted zone. Verified
+    # locally via HMAC token -- no Google, no external calls.
+    slider_token = _form_string_value(request.POST, "slider_token").strip()
+    slider_value = _form_string_value(request.POST, "slider_value").strip()
+    slider_time = _form_string_value(request.POST, "slider_time").strip()
+    slider_ok, slider_err = _verify_slider_token(slider_token, slider_value, slider_time)
+    if not slider_ok:
+        request.session.flash(slider_err, "error")
         return signup_context
 
     result = request.userdb.create_user(
@@ -798,12 +821,19 @@ def signup(request: _ViewContext) -> dict[str, Any] | RedirectResponse:  # noqa:
         password=signup_password,
         email=validated_email,
         tests_repo=tests_repo,
+        auto_approve=auto_approve,
     )
 
     if result is None:
         request.session.flash("Error! Invalid username or password", "error")
     elif not result:
         request.session.flash("Username or email is already registered", "error")
+    elif auto_approve:
+        request.session.flash(
+            "Account created and approved! You can log in right away. "
+            "Thank you for contributing!",
+        )
+        return RedirectResponse(url="/login", status_code=302)
     else:
         request.session.flash(
             "Account created! "
@@ -833,7 +863,7 @@ def worker_email(
 Dear {owner_name},
 
 Thank you for contributing to the development of \
-Stockfish. Unfortunately, it seems your Fishtest \
+PointChess. Unfortunately, it seems your PointTest \
 worker {worker_name} has some issue(s). More \
 specifically the following has been reported:
 
@@ -1206,7 +1236,7 @@ def upload(request: _ViewContext) -> dict[str, Any] | RedirectResponse:  # noqa:
         return result
     base_context = {
         "upload_url": str(request.url),
-        "testing_guidelines_url": "https://github.com/official-stockfish/fishtest/wiki/Creating-my-first-test",
+        "testing_guidelines_url": "https://github.com/PointBoard/fishtest/wiki/Creating-my-first-test",
         "cc0_url": "https://creativecommons.org/share-your-work/public-domain/cc0/",
         "nn_stats_url": "/nns",
     }

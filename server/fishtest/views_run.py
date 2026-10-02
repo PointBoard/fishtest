@@ -323,9 +323,9 @@ def validate_form(request: Any) -> dict[str, Any]:  # noqa: ANN401, C901, PLR091
     username = request.authenticated_userid
     u = request.userdb.get_user(username)
 
-    # Deal with people that have forked from "mcostalba/Stockfish" instead
-    # of from "official-stockfish/Stockfish".
-    official_repo = "https://github.com/official-stockfish/Stockfish"
+    # Deal with people that have forked from another engine instead
+    # of from "PointBoard/PointChess".
+    official_repo = "https://github.com/PointBoard/PointChess"
     master_repo = official_repo
     try:
         master_repo = gh.get_master_repo(user, repo, ignore_rate_limit=True)
@@ -346,7 +346,7 @@ def validate_form(request: Any) -> dict[str, Any]:  # noqa: ANN401, C901, PLR091
             )
             suffix_soft = (
                 "Please consider replacing your repo with one forked from the official "
-                "Stockfish repo!"
+                "PointChess repo!"
             )
             suffix_hard = (
                 "Please replace your repo with one forked from the official "
