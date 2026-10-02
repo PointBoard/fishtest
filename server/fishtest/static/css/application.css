@@ -485,7 +485,7 @@ legend {
   font-weight: 400;
 }
 
-.mainnavbar .stockfish-repo::before {
+.mainnavbar .pointchess-repo::before {
   content: "\f578";
 }
 

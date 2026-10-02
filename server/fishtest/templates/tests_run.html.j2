@@ -224,7 +224,7 @@
                   id="tests-repo"
                   class="form-control"
                   value="{{ tests_repo_value }}" {{ "readonly" if is_rerun else "" }}
-                  placeholder="https://github.com/username/Stockfish"
+                  placeholder="https://github.com/username/PointChess"
                 >
               </div>
 
@@ -502,7 +502,7 @@
                       </div>
                       <div class="modal-body text-break">
                         Checking this option will rewrite the hyperparameters furnished by the tuning
-                        code in Stockfish in such a way that the SPSA tune will finish within 0.5 Elo
+                        code in PointChess in such a way that the SPSA tune will finish within 0.5 Elo
                         from the optimum (with 95% probability) assuming the function
                         <span class="text-nowrap">'parameters-&gt;Elo'</span> is quadratic and varies
                         2 Elo per parameter over each specified parameter interval. The
