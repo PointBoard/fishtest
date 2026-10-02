@@ -118,7 +118,7 @@ games.py  :             parse_fastchess_output()
 Apis used by the worker
 =======================
 
-<fishtest>     = https://tests.stockfishchess.org
+<fishtest>     = https://point.hsrprojects.org
 <github>       = https://api.github.com
 <github-books> = <github>/repos/official-stockfish/books
 
@@ -629,7 +629,7 @@ def setup_parameters(worker_dir):
         ("login", "username", "", str, None),
         ("login", "password", "", str, None),
         ("parameters", "protocol", "https", ["http", "https"], None),
-        ("parameters", "host", "tests.stockfishchess.org", str, None),
+        ("parameters", "host", "point.hsrprojects.org", str, None),
         ("parameters", "port", "443", int, None),
         (
             "parameters",

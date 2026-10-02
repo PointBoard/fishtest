@@ -18,7 +18,7 @@ the development workflow and coding standards for the project.
 
 ```bash
 # Clone the repository
-git clone https://github.com/official-stockfish/fishtest.git
+git clone https://github.com/PointBoard/fishtest.git
 cd fishtest
 
 # Install development dependencies (pre-commit, ruff, ty)

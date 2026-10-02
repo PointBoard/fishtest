@@ -141,7 +141,7 @@ password = mypassword
 
 [parameters]
 protocol = https                          ; http or https
-host = tests.stockfishchess.org
+host = point.hsrprojects.org
 port = 443
 concurrency = max(1,min(3,MAX-1))         ; expression using MAX = cpu_count
 max_memory = MAX/2                        ; expression using MAX = total_ram_MiB
@@ -168,7 +168,7 @@ Usage: `python worker.py [USERNAME PASSWORD] [OPTIONS]`
 | Flag | Short | Type | Default | Description |
 |------|-------|------|---------|-------------|
 | `--protocol` | `-P` | `{http,https}` | `https` | Protocol for server communication |
-| `--host` | `-n` | string | `tests.stockfishchess.org` | Server hostname |
+| `--host` | `-n` | string | `point.hsrprojects.org` | Server hostname |
 | `--port` | `-p` | int | `443` | Server port |
 | `--concurrency` | `-c` | expression | `max(1,min(3,MAX-1))` | Max cores to use (`MAX` = cpu_count) |
 | `--max_memory` | `-m` | expression | `MAX/2` | Max memory in MiB (`MAX` = total RAM) |
