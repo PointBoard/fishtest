@@ -11,8 +11,8 @@ from fishtest.http.template_helpers import nelo_pentanomial_summary_text
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-_SITE_NAME = "Stockfish Testing Framework"
-_DEFAULT_DESCRIPTION = "Distributed testing framework for the Stockfish chess engine."
+_SITE_NAME = "PointTest - PointChess Testing Framework"
+_DEFAULT_DESCRIPTION = "Distributed testing framework for the PointChess chess engine."
 _TITLE_SUFFIX = " | Stockfish Testing"
 _YELLOW_THEME_COLOR = "#FFFF00"
 
